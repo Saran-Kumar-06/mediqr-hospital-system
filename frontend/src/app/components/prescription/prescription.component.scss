@@ -1,0 +1,250 @@
+.rx-card-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: #f5f3ff;
+  color: #7c3aed;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.rx-form-panel {
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.timing-row { align-items: flex-start; }
+
+.timing-group { flex: 2; }
+
+.timing-checks {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.check-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: var(--surface);
+  transition: var(--transition);
+  user-select: none;
+
+  &:hover { border-color: var(--primary); color: var(--primary); }
+
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(26,95,168,0.25);
+  }
+}
+
+.rx-form-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-light);
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.draft-medicine-list {
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  margin-top: 1rem;
+  background: var(--surface);
+}
+
+.draft-medicine-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.75rem;
+}
+
+.draft-medicine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.draft-medicine-item:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.draft-medicine-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+
+  strong {
+    color: var(--text-primary);
+    font-size: 0.94rem;
+  }
+
+  span {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+  }
+}
+
+.rx-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  p { color: var(--text-muted); font-size: 0.9rem; font-style: italic; }
+}
+
+.rx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.rx-card {
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1.25rem;
+  background: var(--surface-alt);
+  transition: var(--transition);
+
+  &:hover { border-color: var(--primary); background: var(--surface); }
+
+  &.rx-dispensed {
+    opacity: 0.65;
+    background: var(--surface-alt);
+    &:hover { opacity: 0.85; }
+  }
+}
+
+.rx-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.group-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.rx-med-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rx-medicine {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rx-dosage-tag {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  display: inline-block;
+}
+
+.rx-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.group-medicine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.group-medicine-item {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+}
+
+.group-medicine-item-dispensed {
+  opacity: 0.75;
+}
+
+.group-medicine-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.rx-timing-display {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.timing-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid;
+
+  &.morning   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+  &.afternoon { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+  &.night     { background: #eff6ff; color: var(--primary); border-color: #bfdbfe; }
+  &.days      { background: var(--surface-alt); color: var(--text-secondary); border-color: var(--border); }
+}
+
+.rx-notes {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.rx-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.rx-dispense-btn {
+  width: 100%;
+}
+
+.badge-warning {
+  background: var(--warning-bg);
+  color: #92400e;
+}

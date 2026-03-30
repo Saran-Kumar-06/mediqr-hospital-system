@@ -1,0 +1,215 @@
+<div class="page-content">
+  <div *ngIf="loading" class="loading-spinner"><div class="spinner"></div><span>Loading patient record...</span></div>
+  <div *ngIf="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+
+  <ng-container *ngIf="!loading && patient">
+    <!-- Page Header -->
+    <div class="patient-page-header">
+      <div class="patient-header-left">
+        <button class="btn btn-ghost btn-sm" routerLink="/dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back
+        </button>
+        <div class="patient-avatar-header">
+          <div class="avatar avatar-lg">{{ patient.name.substring(0,2).toUpperCase() }}</div>
+          <div class="patient-title-block">
+            <h1>{{ patient.name }}</h1>
+            <div class="patient-meta">
+              <code class="patient-id-tag">{{ patient.patientId }}</code>
+              <span>{{ patient.age }} yrs</span>
+              <span>{{ patient.gender }}</span>
+              <span *ngIf="patient.bloodGroup" class="blood-badge">{{ patient.bloodGroup }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-header-actions">
+        <button class="btn btn-ghost btn-sm" (click)="showQR = !showQR">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="16" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="16" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><path d="M16 16h5v5M16 16v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          View QR
+        </button>
+        <button class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          Add Vitals
+        </button>
+      </div>
+    </div>
+
+    <!-- QR Code Panel -->
+    <div *ngIf="showQR" class="qr-panel card">
+      <div class="qr-panel-inner">
+        <img [src]="patient.qrCode" alt="QR" class="qr-preview" />
+        <div>
+          <h3>Patient QR Code</h3>
+          <p>{{ patient.name }} — {{ patient.patientId }}</p>
+          <div style="margin-top:1rem; display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" (click)="downloadQR()">Download QR</button>
+            <button class="btn btn-ghost btn-sm" (click)="showQR = false">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest Status Banner -->
+    <div *ngIf="getLatestVitals() as lv" class="status-banner"
+         [class.status-normal]="lv.status === 'Normal'"
+         [class.status-low]="lv.status === 'Low'"
+         [class.status-high]="lv.status === 'High'"
+         [class.status-critical]="lv.status === 'Critical'">
+      <div class="status-banner-left">
+        <span class="status-label">Current Condition</span>
+        <span class="badge" [ngClass]="getStatusClass(lv.status)">{{ lv.status }}</span>
+      </div>
+      <div class="status-conditions">
+        <span *ngFor="let c of lv.conditions" class="condition-tag">{{ c }}</span>
+      </div>
+      <span class="status-time">Last visit: {{ getTimeSince(lv.date) }}</span>
+    </div>
+
+    <!-- Info Cards Row -->
+    <div class="info-row">
+      <div class="card info-card">
+        <div class="info-icon-wrap blue">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8 19.79 19.79 0 011 1.18 2 2 0 013 .02h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.92v2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="info-label">Phone</div>
+          <div class="info-value">{{ patient.phone }}</div>
+        </div>
+      </div>
+
+      <div class="card info-card">
+        <div class="info-icon-wrap green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="info-label">Registered</div>
+          <div class="info-value">{{ formatDateShort(patient.registeredAt) }}</div>
+        </div>
+      </div>
+
+      <div class="card info-card">
+        <div class="info-icon-wrap orange">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="info-label">Total Visits</div>
+          <div class="info-value">{{ patient.vitalsHistory.length || 0 }}</div>
+        </div>
+      </div>
+
+      <div class="card info-card">
+        <div class="info-icon-wrap purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="info-label">Prescriptions</div>
+          <div class="info-value">{{ patient.prescriptions.length || 0 }}
+            <span *ngIf="pendingPrescriptions.length" class="pending-chip">{{ pendingPrescriptions.length }} pending</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card info-card">
+        <div class="info-icon-wrap green">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <div class="info-label">Reports</div>
+          <div class="info-value">{{ patient.medicalReports?.length || 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest Vitals -->
+    <ng-container *ngIf="getLatestVitals() as lv">
+      <div class="card vitals-summary-card">
+        <div class="card-header">
+          <div class="card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>Latest Vitals</h3>
+          <span class="ml-auto text-small text-muted">{{ formatDate(lv.date) }}</span>
+        </div>
+
+        <div class="vitals-grid">
+          <div *ngIf="lv.temperature" class="vital-chip">
+            <span class="vital-chip-label">Temperature</span>
+            <span class="vital-chip-value">{{ lv.temperature }}°C</span>
+          </div>
+          <div *ngIf="lv.bloodPressureSystolic" class="vital-chip">
+            <span class="vital-chip-label">Blood Pressure</span>
+            <span class="vital-chip-value">{{ lv.bloodPressureSystolic }}/{{ lv.bloodPressureDiastolic }}</span>
+          </div>
+          <div *ngIf="lv.heartRate" class="vital-chip">
+            <span class="vital-chip-label">Heart Rate</span>
+            <span class="vital-chip-value">{{ lv.heartRate }} bpm</span>
+          </div>
+          <div *ngIf="lv.pulse" class="vital-chip">
+            <span class="vital-chip-label">Pulse</span>
+            <span class="vital-chip-value">{{ lv.pulse }} bpm</span>
+          </div>
+          <div *ngIf="lv.oxygen" class="vital-chip">
+            <span class="vital-chip-label">SpO₂</span>
+            <span class="vital-chip-value">{{ lv.oxygen }}%</span>
+          </div>
+          <div *ngIf="lv.weight" class="vital-chip">
+            <span class="vital-chip-label">Weight</span>
+            <span class="vital-chip-value">{{ lv.weight }} kg</span>
+          </div>
+        </div>
+
+        <div *ngIf="lv.doctorFeedback" class="doctor-feedback-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><strong>Doctor's Note:</strong> {{ lv.doctorFeedback }}</span>
+        </div>
+
+        <div class="vitals-actions">
+          <button class="btn btn-outline btn-sm" [routerLink]="['/patient', patient.patientId, 'history']">View All Visits</button>
+          <button class="btn btn-primary btn-sm" [routerLink]="['/patient', patient.patientId, 'vitals']">Add New Vitals</button>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!patient.vitalsHistory.length">
+      <div class="card empty-vitals-card">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" opacity="0.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>No vitals recorded yet.</p>
+        <button class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">Record First Vitals</button>
+      </div>
+    </ng-container>
+
+    <!-- Prescriptions (full component) -->
+    <app-prescription [patientId]="patient.patientId" [patient]="patient"></app-prescription>
+    <app-medical-reports [patientId]="patient.patientId" [patient]="patient"></app-medical-reports>
+
+    <!-- Prescriptions Preview (legacy - hidden, kept for ref) -->
+    <div *ngIf="false" class="card prescriptions-card">
+      <div class="card-header">
+        <div class="card-icon purple">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 14l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Recent Prescriptions</h3>
+      </div>
+
+      <div class="rx-list">
+        <div *ngFor="let rx of recentPrescriptions" class="rx-item">
+          <div class="rx-info">
+            <span class="rx-name">{{ rx.medicineName }}</span>
+            <span class="rx-dosage">{{ rx.dosage }}</span>
+            <div class="rx-timing">
+              <span *ngIf="rx.morning" class="timing-chip">Morning</span>
+              <span *ngIf="rx.afternoon" class="timing-chip">Afternoon</span>
+              <span *ngIf="rx.night" class="timing-chip">Night</span>
+              <span class="timing-chip grey">{{ rx.days }} days</span>
+            </div>
+          </div>
+          <span class="badge" [class.badge-normal]="rx.dispensed" [class.badge-high]="!rx.dispensed">
+            {{ rx.dispensed ? 'Dispensed' : 'Pending' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

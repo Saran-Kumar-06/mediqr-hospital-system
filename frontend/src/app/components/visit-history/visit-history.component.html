@@ -1,0 +1,112 @@
+<div class="page-content">
+  <div *ngIf="loading" class="loading-spinner"><div class="spinner"></div><span>Loading visit history...</span></div>
+  <div *ngIf="errorMsg" class="alert alert-danger">{{ errorMsg }}</div>
+
+  <ng-container *ngIf="!loading && patient">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <button class="btn btn-ghost btn-sm" [routerLink]="['/patient', patientId]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Back to Patient
+        </button>
+        <h1>Visit History</h1>
+        <p>{{ patient.name }} · {{ patient.vitalsHistory.length || 0 }} visit(s) on record</p>
+      </div>
+      <button class="btn btn-primary" [routerLink]="['/patient', patientId, 'vitals']">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        Add Vitals
+      </button>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="!patient.vitalsHistory.length" class="card empty-state">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" opacity="0.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p>No visits recorded yet.</p>
+      <button class="btn btn-primary" [routerLink]="['/patient', patientId, 'vitals']">Record First Visit</button>
+    </div>
+
+    <!-- Visit cards -->
+    <div class="visits-timeline" *ngIf="sortedVisits.length">
+      <div *ngFor="let visit of sortedVisits; let i = index"
+           class="visit-card card" [ngClass]="getStatusBg(visit.status)">
+
+        <!-- Visit Header -->
+        <div class="visit-header">
+          <div class="visit-number">Visit #{{ sortedVisits.length - i }}</div>
+          <div class="visit-datetime">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            {{ formatDate(visit.date) }}
+            <span class="visit-time">{{ formatTime(visit.date) }}</span>
+          </div>
+          <span class="badge" [ngClass]="getStatusClass(visit.status)">{{ visit.status }}</span>
+        </div>
+
+        <!-- Conditions -->
+        <div *ngIf="visit.conditions?.length" class="visit-conditions">
+          <span *ngFor="let c of visit.conditions" class="condition-pill">{{ c }}</span>
+        </div>
+
+        <!-- Vitals Grid -->
+        <div class="vitals-display-grid">
+          <div *ngIf="visit.temperature" class="vd-item">
+            <span class="vd-label">Temperature</span>
+            <span class="vd-value">{{ visit.temperature }}°C</span>
+          </div>
+          <div *ngIf="visit.bloodPressureSystolic" class="vd-item">
+            <span class="vd-label">Blood Pressure</span>
+            <span class="vd-value">{{ visit.bloodPressureSystolic }}/{{ visit.bloodPressureDiastolic }} <span class="vd-unit">mmHg</span></span>
+          </div>
+          <div *ngIf="visit.heartRate" class="vd-item">
+            <span class="vd-label">Heart Rate</span>
+            <span class="vd-value">{{ visit.heartRate }} <span class="vd-unit">bpm</span></span>
+          </div>
+          <div *ngIf="visit.pulse" class="vd-item">
+            <span class="vd-label">Pulse Rate</span>
+            <span class="vd-value">{{ visit.pulse }} <span class="vd-unit">bpm</span></span>
+          </div>
+          <div *ngIf="visit.oxygen" class="vd-item">
+            <span class="vd-label">SpO₂</span>
+            <span class="vd-value">{{ visit.oxygen }}<span class="vd-unit">%</span></span>
+          </div>
+          <div *ngIf="visit.weight" class="vd-item">
+            <span class="vd-label">Weight</span>
+            <span class="vd-value">{{ visit.weight }} <span class="vd-unit">kg</span></span>
+          </div>
+        </div>
+
+        <!-- Doctor Feedback -->
+        <div class="visit-feedback-section">
+          <div *ngIf="editingFeedbackId !== visit._id">
+            <div *ngIf="visit.doctorFeedback" class="feedback-display">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M9 16h6M17 21H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span><strong>Doctor's Note:</strong> {{ visit.doctorFeedback }}</span>
+            </div>
+            <div *ngIf="!visit.doctorFeedback" class="feedback-empty">
+              <span>No doctor's note recorded.</span>
+            </div>
+            <button class="btn btn-ghost btn-sm feedback-edit-btn" (click)="startEditFeedback(visit)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              {{ visit.doctorFeedback ? 'Edit Note' : 'Add Note' }}
+            </button>
+          </div>
+
+          <div *ngIf="editingFeedbackId === visit._id" class="feedback-edit-form">
+            <textarea
+              [(ngModel)]="feedbackDraft"
+              rows="2"
+              placeholder="Enter doctor's feedback or notes..."
+              class="feedback-textarea">
+            </textarea>
+            <div class="feedback-edit-actions">
+              <button class="btn btn-primary btn-sm" (click)="saveFeedback(visit._id!)" [disabled]="savingFeedback">
+                {{ savingFeedback ? 'Saving...' : 'Save Note' }}
+              </button>
+              <button class="btn btn-ghost btn-sm" (click)="cancelEditFeedback()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

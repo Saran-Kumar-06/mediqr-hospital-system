@@ -1,0 +1,83 @@
+<div class="reports-section card">
+  <div class="card-header">
+    <div class="reports-card-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 2v6h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h3>Medical Reports</h3>
+    <div class="reports-summary" *ngIf="reports.length">{{ reports.length }} uploaded</div>
+  </div>
+
+  <div *ngIf="successMsg" class="alert alert-success" style="margin-bottom:1rem">
+    {{ successMsg }}
+  </div>
+
+  <div *ngIf="errorMsg" class="alert alert-danger" style="margin-bottom:1rem">
+    {{ errorMsg }}
+  </div>
+
+  <form class="report-upload-panel" [formGroup]="form" (ngSubmit)="uploadReport()">
+    <div class="report-form-grid">
+      <div class="form-group">
+        <label class="required">Report Type</label>
+        <select formControlName="reportType">
+          <option value="Scan">Scan</option>
+          <option value="Test">Test</option>
+          <option value="Lab">Lab</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group report-title-group">
+        <label class="required">Report Title</label>
+        <input type="text" formControlName="title" placeholder="e.g. Chest X-Ray, Blood Sugar Report" />
+      </div>
+    </div>
+
+    <div class="upload-row">
+      <label class="upload-dropzone" [class.has-file]="selectedFile">
+        <input type="file" accept=".pdf,image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" />
+        <span class="upload-copy">
+          <strong>{{ selectedFile?.name || 'Choose report file' }}</strong>
+          <small>Supports PDF, JPG, PNG, WebP</small>
+        </span>
+      </label>
+
+      <button type="submit" class="btn btn-primary" [disabled]="uploading">
+        {{ uploading ? 'Uploading...' : 'Upload Report' }}
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="reports.length === 0" class="reports-empty">
+    <p>No scan or test reports uploaded yet.</p>
+  </div>
+
+  <div *ngIf="reports.length" class="reports-list">
+    <div *ngFor="let report of reports" class="report-item">
+      <div class="report-main">
+        <div class="report-meta-row">
+          <span class="report-type-pill">{{ report.reportType }}</span>
+          <span class="report-date">{{ formatDate(report.uploadedAt) }}</span>
+        </div>
+        <div class="report-title">{{ report.title }}</div>
+        <div class="report-subline">
+          <span>{{ report.fileName }}</span>
+          <span>{{ formatFileSize(report.fileSize) }}</span>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <a class="btn btn-sm btn-ghost" [href]="getReportUrl(report)" target="_blank" rel="noopener">
+          View
+        </a>
+        <a class="btn btn-sm btn-outline" [href]="getReportUrl(report)" [attr.download]="report.fileName">
+          Download
+        </a>
+        <button class="btn btn-sm btn-outline" type="button"
+                (click)="sendReportWhatsapp(report)" [disabled]="sendingReportId === report._id">
+          {{ sendingReportId === report._id ? 'Sending...' : 'Send via WhatsApp' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

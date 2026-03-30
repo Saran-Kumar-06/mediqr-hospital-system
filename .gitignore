@@ -1,0 +1,7 @@
+backend/reports/
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+Thumbs.db
+.DS_Store

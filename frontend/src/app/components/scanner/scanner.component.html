@@ -1,0 +1,93 @@
+<div class="page-content">
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Scan Patient QR Code</h1>
+      <p>Scan QR code to load patient details instantly</p>
+    </div>
+  </div>
+
+  <div class="scanner-layout">
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="tab-btn" [class.active]="mode === 'camera'" (click)="switchMode('camera')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" stroke="currentColor" stroke-width="2"/></svg>
+        Camera Scan
+      </button>
+      <button class="tab-btn" [class.active]="mode === 'upload'" (click)="switchMode('upload')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Upload Image
+      </button>
+      <button class="tab-btn" [class.active]="mode === 'manual'" (click)="switchMode('manual')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Manual ID Entry
+      </button>
+    </div>
+
+    <!-- Alerts -->
+    <div *ngIf="errorMsg" class="alert alert-danger">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      {{ errorMsg }}
+    </div>
+    <div *ngIf="successMsg" class="alert alert-success">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      {{ successMsg }}
+    </div>
+
+    <div *ngIf="loading" class="loading-spinner">
+      <div class="spinner"></div>
+      <span>Loading patient record...</span>
+    </div>
+
+    <!-- Camera Mode -->
+    <div *ngIf="mode === 'camera' && !loading" class="scan-panel card">
+      <div class="scan-instructions">
+        <div class="instruction-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="16" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="16" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><path d="M16 16h5v5M16 16v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <p>Hold the patient's QR code in front of your camera</p>
+      </div>
+      <div id="qr-reader" class="qr-reader-container"></div>
+    </div>
+
+    <!-- Upload Mode -->
+    <div *ngIf="mode === 'upload' && !loading" class="scan-panel card">
+      <div class="upload-zone">
+        <label for="qr-file-input" class="upload-label">
+          <div class="upload-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="upload-text">Click to select QR code image</p>
+          <p class="upload-subtext">Supports PNG, JPG, WebP</p>
+        </label>
+        <input id="qr-file-input" type="file" accept="image/*" (change)="onFileSelected($event)" style="display:none" />
+      </div>
+      <div id="file-reader-div" style="display:none"></div>
+    </div>
+
+    <!-- Manual Mode -->
+    <div *ngIf="mode === 'manual' && !loading" class="scan-panel card">
+      <div class="manual-entry">
+        <div class="form-group">
+          <label>Patient ID</label>
+          <input
+            type="text"
+            [(ngModel)]="manualId"
+            placeholder="Enter Patient ID (e.g. PT-XXXXXX-XXXX)"
+            (keyup.enter)="submitManual()"
+            style="text-transform: uppercase; font-family: monospace; font-size: 1rem;"
+          />
+        </div>
+        <button class="btn btn-primary btn-lg" (click)="submitManual()" [disabled]="!manualId.trim()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Find Patient
+        </button>
+      </div>
+    </div>
+
+    <!-- Scanned ID display -->
+    <div *ngIf="scanResult && !loading" class="scan-result-display">
+      <span class="sr-label">Scanned ID:</span>
+      <code>{{ scanResult }}</code>
+    </div>
+  </div>
+</div>
