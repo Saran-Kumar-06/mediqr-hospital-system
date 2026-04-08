@@ -48,16 +48,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal server error.', error: err.message });
 });
 
-// ─── Connect to MongoDB then start server ─────────────────────────────────────
-mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log('✅  Connected to MongoDB:', MONGO_URI.replace(/\/\/.*@/, '//***@'));
-    app.listen(PORT, () => {
-      console.log(`🏥  Hospital QR System API running on port ${PORT}`);
-      console.log(`   Health check: http://localhost:${PORT}/api/health`);
+// ─── Start server then connect to MongoDB ──────────────────────────────────────
+app.listen(PORT, () => {
+  console.log(`🏥  Hospital QR System API running on port ${PORT}`);
+  console.log(`   Health check: http://localhost:${PORT}/api/health`);
+  
+  // Connect to DB after server is listening to avoid Render timeouts/521 errors
+  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 15000 })
+    .then(() => {
+      console.log('✅  Connected to MongoDB:', MONGO_URI.replace(/\/\/.*@/, '//***@'));
+    })
+    .catch(err => {
+      console.error('❌  MongoDB connection failed:', err.message);
     });
-  })
-  .catch(err => {
-    console.error('❌  MongoDB connection failed:', err.message);
-    process.exit(1);
-  });
+});
