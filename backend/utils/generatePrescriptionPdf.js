@@ -251,26 +251,20 @@ function buildPdfBuffer(pageContents) {
   return Buffer.from(pdf, 'utf8');
 }
 
-function ensureReportsDir() {
-  const reportsDir = getReportsDir();
-  fs.mkdirSync(reportsDir, { recursive: true });
-  return reportsDir;
-}
+const GeneratedPdf = require('../models/GeneratedPdf');
 
-function writePdfFile(fileName, lines) {
-  const reportsDir = ensureReportsDir();
-  const relativePath = fileName;
-  const absolutePath = path.join(reportsDir, relativePath);
+async function writePdfToMongo(fileName, lines, patientId) {
   const pages = paginateLines(lines);
   const pageContents = pages.map(renderPageContent);
   const pdfBuffer = buildPdfBuffer(pageContents);
 
-  fs.writeFileSync(absolutePath, pdfBuffer);
+  const doc = await GeneratedPdf.create({
+    fileName,
+    patientId,
+    data: pdfBuffer
+  });
 
-  return {
-    absolutePath,
-    relativePath
-  };
+  return { mongoId: doc._id.toString(), fileName };
 }
 
 async function generateSinglePrescriptionPdf(patient, groupedPrescriptions, prescriptionId) {
@@ -280,9 +274,10 @@ async function generateSinglePrescriptionPdf(patient, groupedPrescriptions, pres
     prescribedOn: groupedPrescriptions[0]?.date
   };
 
-  return writePdfFile(
+  return writePdfToMongo(
     `prescription_${sanitizeFilePart(patient.patientId)}_${sanitizeFilePart(prescriptionId)}.pdf`,
-    buildDocumentLines(patient, [group], 'Hospital Prescription')
+    buildDocumentLines(patient, [group], 'Hospital Prescription'),
+    patient.patientId
   );
 }
 
@@ -293,9 +288,10 @@ async function generateAllPrescriptionsPdf(patient) {
     throw new Error('No prescriptions found for this patient.');
   }
 
-  return writePdfFile(
+  return writePdfToMongo(
     `all_prescriptions_${sanitizeFilePart(patient.patientId)}.pdf`,
-    buildDocumentLines(patient, groups, 'All Prescriptions')
+    buildDocumentLines(patient, groups, 'All Prescriptions'),
+    patient.patientId
   );
 }
 

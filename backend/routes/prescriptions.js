@@ -52,13 +52,8 @@ router.post('/:id/send-whatsapp', async (req, res) => {
       prescriptionId
     );
 
-    const pdfUrl = buildReportUrl(req, pdfFile.relativePath);
-    if (!isPubliclyReachableUrl(pdfUrl)) {
-      return res.status(400).json({
-        message: 'Twilio cannot access a localhost/private media URL. Set PUBLIC_BASE_URL to a public URL before sending WhatsApp PDFs.',
-        error: `Current media URL: ${pdfUrl}`
-      });
-    }
+    const baseUrl = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const pdfUrl  = `${baseUrl}/api/pdf/${pdfFile.mongoId}`;
 
     const twilioResponse = await sendPrescriptionPdf(
       patient.phone,
