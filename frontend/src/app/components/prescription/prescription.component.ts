@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PatientService } from '../../services/patient.service';
 import { Patient, Prescription } from '../../models/patient.model';
+import { environment } from '../../../environments/environment';
 
 type PrescriptionDraft = Omit<Prescription, '_id' | 'dispensed' | 'date'>;
 type PrescriptionGroup = {
@@ -263,35 +264,12 @@ export class PrescriptionComponent implements OnInit {
 
   downloadPrescriptionPdf(group: PrescriptionGroup): void {
     if (!this.patient) return;
-
-    const printWindow = window.open('', '_blank', 'width=900,height=1200');
-    if (!printWindow) {
-      this.errorMsg = 'Unable to open print window. Please allow pop-ups and try again.';
-      return;
-    }
-
-    const html = this.buildPrescriptionPrintHtml([group], `Prescription ${this.patient.patientId}`);
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
+    window.open(`${environment.apiUrl}/prescriptions/${group.id}/download`, '_blank');
   }
 
   downloadAllPrescriptionsPdf(): void {
     if (!this.patient || !this.prescriptionGroups.length) return;
-
-    const printWindow = window.open('', '_blank', 'width=900,height=1200');
-    if (!printWindow) {
-      this.errorMsg = 'Unable to open print window. Please allow pop-ups and try again.';
-      return;
-    }
-
-    const html = this.buildPrescriptionPrintHtml(
-      this.prescriptionGroups,
-      `All Prescriptions ${this.patient.patientId}`
-    );
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
+    window.open(`${environment.apiUrl}/patients/${this.patient.patientId}/download-all-prescriptions`, '_blank');
   }
 
   formatDateTime(date: any): string {

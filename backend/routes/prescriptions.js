@@ -88,4 +88,54 @@ router.post('/:id/send-whatsapp', async (req, res) => {
   }
 });
 
+router.get('/:id/download', async (req, res) => {
+  const prescriptionId = req.params.id;
+
+  try {
+    let patient = await Patient.findOne({
+      'prescriptions.prescriptionGroupId': prescriptionId
+    });
+
+    if (!patient && mongoose.Types.ObjectId.isValid(prescriptionId)) {
+      patient = await Patient.findOne({
+        'prescriptions._id': prescriptionId
+      });
+    }
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Prescription not found.' });
+    }
+
+    let groupedPrescriptions = patient.prescriptions.filter(
+      prescription => prescription.prescriptionGroupId === prescriptionId
+    );
+
+    if (!groupedPrescriptions.length) {
+      const singlePrescription = patient.prescriptions.id(prescriptionId);
+      if (singlePrescription) {
+        groupedPrescriptions = [singlePrescription];
+      }
+    }
+
+    if (!groupedPrescriptions.length) {
+      return res.status(404).json({ message: 'Prescription not found.' });
+    }
+
+    const pdfFile = await generateSinglePrescriptionPdf(
+      patient,
+      groupedPrescriptions,
+      prescriptionId
+    );
+
+    const baseUrl = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    res.redirect(`${baseUrl}/api/pdf/${pdfFile.mongoId}`);
+  } catch (err) {
+    console.error('Failed to generate prescription PDF:', err);
+    res.status(500).json({
+      message: 'Failed to download PDF.',
+      error: err.message
+    });
+  }
+});
+
 module.exports = router;

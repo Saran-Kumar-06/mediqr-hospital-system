@@ -428,6 +428,25 @@ router.post('/:id/send-all-prescriptions', async (req, res) => {
   }
 });
 
+router.get('/:id/download-all-prescriptions', async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ patientId: req.params.id });
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found.' });
+    }
+
+    const pdfFile = await generateAllPrescriptionsPdf(patient);
+    const baseUrl = (process.env.PUBLIC_BASE_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    res.redirect(`${baseUrl}/api/pdf/${pdfFile.mongoId}`);
+  } catch (err) {
+    console.error('Failed to generate all prescriptions PDF:', err);
+    res.status(500).json({
+      message: 'Failed to download all PDFs.',
+      error: err.message
+    });
+  }
+});
+
 router.get('/:id/qr', async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id }).select('patientId name qrCode');
