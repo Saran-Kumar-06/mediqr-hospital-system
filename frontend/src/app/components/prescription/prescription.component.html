@@ -5,13 +5,13 @@
     </div>
     <h3>Prescriptions</h3>
     <div class="section-actions">
-      <button *ngIf="prescriptionGroups.length" class="btn btn-ghost btn-sm" (click)="downloadAllPrescriptionsPdf()">
+      <button *ngIf="prescriptionGroups.length && (authService.isPharmacist() || authService.isNurse())" class="btn btn-ghost btn-sm" (click)="downloadAllPrescriptionsPdf()">
         Download All Prescriptions
       </button>
-      <button *ngIf="prescriptionGroups.length" class="btn btn-outline btn-sm" (click)="sendAllPrescriptionsWhatsapp()" [disabled]="sendingAll">
+      <button *ngIf="prescriptionGroups.length && (authService.isPharmacist() || authService.isNurse())" class="btn btn-outline btn-sm" (click)="sendAllPrescriptionsWhatsapp()" [disabled]="sendingAll">
         {{ sendingAll ? 'Sending...' : 'Send All via WhatsApp' }}
       </button>
-      <button class="btn btn-primary btn-sm" (click)="toggleForm()">
+      <button *ngIf="authService.isDoctor()" class="btn btn-primary btn-sm" (click)="toggleForm()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
         {{ showForm ? 'Cancel' : 'Add Prescription' }}
       </button>
@@ -127,13 +127,13 @@
           <span class="badge" [class.badge-normal]="group.allDispensed" [class.badge-warning]="!group.allDispensed">
             {{ getGroupStatusLabel(group) }}
           </span>
-          <button class="btn btn-sm btn-ghost" (click)="downloadPrescriptionPdf(group)">
+          <button *ngIf="authService.isPharmacist() || authService.isNurse()" class="btn btn-sm btn-ghost" (click)="downloadPrescriptionPdf(group)">
             Download PDF
           </button>
-          <button class="btn btn-sm btn-outline" (click)="sendPrescriptionWhatsapp(group)" [disabled]="sendingGroup === group.id">
+          <button *ngIf="authService.isPharmacist() || authService.isNurse()" class="btn btn-sm btn-outline" (click)="sendPrescriptionWhatsapp(group)" [disabled]="sendingGroup === group.id">
             {{ sendingGroup === group.id ? 'Sending...' : 'Send via WhatsApp' }}
           </button>
-          <button *ngIf="!group.allDispensed && group.canDispenseAll" class="btn btn-sm btn-outline"
+          <button *ngIf="authService.isPharmacist() && !group.allDispensed && group.canDispenseAll" class="btn btn-sm btn-outline"
                   (click)="markGroupDispensed(group.id)" [disabled]="dispensingGroup === group.id">
             {{ dispensingGroup === group.id ? 'Dispensing...' : 'Dispense All' }}
           </button>
@@ -166,7 +166,7 @@
 
           <div *ngIf="rx.notes" class="rx-notes">{{ rx.notes }}</div>
 
-          <button *ngIf="!rx.dispensed" class="btn btn-sm btn-accent rx-dispense-btn"
+          <button *ngIf="authService.isPharmacist() && !rx.dispensed" class="btn btn-sm btn-accent rx-dispense-btn"
                   (click)="markDispensed(rx._id!)" [disabled]="dispensing === rx._id">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M22 12a10 10 0 11-20 0 10 10 0 0120 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             {{ dispensing === rx._id ? 'Marking...' : 'Mark as Dispensed' }}

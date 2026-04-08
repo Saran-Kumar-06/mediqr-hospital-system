@@ -6,6 +6,7 @@ const cors = require('cors');
 const patientRoutes = require('./routes/patients');
 const prescriptionRoutes = require('./routes/prescriptions');
 const pdfRoutes = require('./routes/pdf');
+const authRoutes = require('./routes/auth');
 const { getReportsDir } = require('./utils/prescriptionPdfLocator');
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/reports', express.static(getReportsDir()));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
+app.use('/api/auth', authRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/patients', patientRoutes);

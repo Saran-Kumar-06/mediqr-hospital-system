@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { MedicalReport, Patient } from '../../models/patient.model';
 import { PatientService } from '../../services/patient.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-medical-reports',
@@ -23,7 +24,8 @@ export class MedicalReportsComponent {
 
   constructor(
     private fb: FormBuilder,
-    private patientService: PatientService
+    private patientService: PatientService,
+    public authService: AuthService
   ) {
     this.form = this.fb.group({
       reportType: ['Scan', Validators.required],

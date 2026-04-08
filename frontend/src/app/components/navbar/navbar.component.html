@@ -14,7 +14,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Dashboard
       </a>
-      <a routerLink="/register" class="nav-link" [class.active]="isActive('/register')" (click)="closeMenu()">
+      <a *ngIf="authService.isNurse()" routerLink="/register" class="nav-link" [class.active]="isActive('/register')" (click)="closeMenu()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8zM20 8v6M23 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Register Patient
       </a>
@@ -24,7 +24,14 @@
       </a>
 
       <div class="nav-divider"></div>
-      <span class="nav-badge">Hospital v1.0</span>
+      
+      <span *ngIf="authService.currentUserValue" class="nav-badge" style="background: var(--accent); color: white;">
+        {{ authService.currentUserValue.role }}
+      </span>
+
+      <a *ngIf="authService.isAuthenticated()" href="javascript:void(0)" (click)="logout()" class="nav-link logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
     </div>
 
     <button class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen" aria-label="Toggle menu">

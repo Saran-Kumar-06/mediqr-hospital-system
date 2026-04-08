@@ -6,15 +6,18 @@ import { ScannerComponent } from './components/scanner/scanner.component';
 import { PatientDetailComponent } from './components/patient-detail/patient-detail.component';
 import { VitalsEntryComponent } from './components/vitals-entry/vitals-entry.component';
 import { VisitHistoryComponent } from './components/visit-history/visit-history.component';
+import { AuthComponent } from './components/auth/auth.component';
+import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'scan', component: ScannerComponent },
-  { path: 'patient/:id', component: PatientDetailComponent },
-  { path: 'patient/:id/vitals', component: VitalsEntryComponent },
-  { path: 'patient/:id/history', component: VisitHistoryComponent },
+  { path: 'login', component: AuthComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'register', component: RegisterComponent, canActivate: [AuthGuard] },
+  { path: 'scan', component: ScannerComponent, canActivate: [AuthGuard] },
+  { path: 'patient/:id', component: PatientDetailComponent, canActivate: [AuthGuard] },
+  { path: 'patient/:id/vitals', component: VitalsEntryComponent, canActivate: [AuthGuard] },
+  { path: 'patient/:id/history', component: VisitHistoryComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: '/dashboard' }
 ];
 

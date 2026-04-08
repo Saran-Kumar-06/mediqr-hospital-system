@@ -3,6 +3,7 @@ const router = express.Router();
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const Patient = require('../models/Patient');
+const { protect, authorize } = require('../middleware/auth');
 const { evaluateVitals } = require('../utils/healthEvaluator');
 const { sendPrescriptionPdf, sendWhatsappMedia } = require('../utils/sendWhatsappPdf');
 const { generateAllPrescriptionsPdf } = require('../utils/generatePrescriptionPdf');
@@ -23,7 +24,7 @@ function generatePatientId() {
 }
 
 // ─── POST /api/patients  ──  Register new patient ────────────────────────────
-router.post('/', async (req, res) => {
+router.post('/', protect, authorize('Nurse'), async (req, res) => {
   try {
     const { name, age, gender, phone, bloodGroup, address } = req.body;
     if (!name || !age || !gender || !phone) {
@@ -65,7 +66,7 @@ router.post('/', async (req, res) => {
 });
 
 // ─── GET /api/patients  ──  List all patients ────────────────────────────────
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
     const { search, page = 1, limit = 20 } = req.query;
     const query = search
@@ -90,7 +91,7 @@ router.get('/', async (req, res) => {
 });
 
 // ─── GET /api/patients/:id  ──  Get patient by patientId ─────────────────────
-router.get('/:id', async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -101,7 +102,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ─── PUT /api/patients/:id  ──  Update patient info ──────────────────────────
-router.put('/:id', async (req, res) => {
+router.put('/:id', protect, authorize('Nurse'), async (req, res) => {
   try {
     const { name, age, gender, phone, bloodGroup, address } = req.body;
     const patient = await Patient.findOne({ patientId: req.params.id });
@@ -121,8 +122,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// ─── POST /api/patients/:id/vitals  ──  Add vitals entry ─────────────────────
-router.post('/:id/reports', async (req, res) => {
+// ─── POST /api/patients/:id/reports  ──  Add medical report  ──────────────────
+router.post('/:id/reports', protect, authorize('Nurse'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -155,7 +156,7 @@ router.post('/:id/reports', async (req, res) => {
   }
 });
 
-router.post('/:id/reports/:reportId/send-whatsapp', async (req, res) => {
+router.post('/:id/reports/:reportId/send-whatsapp', protect, authorize('Nurse', 'Pharmacist'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -202,7 +203,7 @@ router.post('/:id/reports/:reportId/send-whatsapp', async (req, res) => {
   }
 });
 
-router.post('/:id/vitals', async (req, res) => {
+router.post('/:id/vitals', protect, authorize('Nurse'), async (req, res) => {
   try {
     const {
       temperature,
@@ -258,7 +259,7 @@ router.post('/:id/vitals', async (req, res) => {
 });
 
 // ─── PUT /api/patients/:id/vitals/:vitalsId/feedback  ──  Update feedback ────
-router.put('/:id/vitals/:vitalsId/feedback', async (req, res) => {
+router.put('/:id/vitals/:vitalsId/feedback', protect, authorize('Doctor'), async (req, res) => {
   try {
     const { doctorFeedback } = req.body;
     const patient = await Patient.findOne({ patientId: req.params.id });
@@ -276,7 +277,7 @@ router.put('/:id/vitals/:vitalsId/feedback', async (req, res) => {
 });
 
 // ─── POST /api/patients/:id/prescriptions  ──  Add prescription ──────────────
-router.post('/:id/prescriptions', async (req, res) => {
+router.post('/:id/prescriptions', protect, authorize('Doctor'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -334,7 +335,7 @@ router.post('/:id/prescriptions', async (req, res) => {
 });
 
 // ─── PUT /api/patients/:id/prescriptions/:rxId/dispense  ──  Mark dispensed ──
-router.put('/:id/prescriptions/:rxId/dispense', async (req, res) => {
+router.put('/:id/prescriptions/:rxId/dispense', protect, authorize('Pharmacist'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -351,7 +352,7 @@ router.put('/:id/prescriptions/:rxId/dispense', async (req, res) => {
 });
 
 // ─── PUT /api/patients/:id/prescriptions/group/:groupId/dispense-all  ──  Mark group dispensed ──
-router.put('/:id/prescriptions/group/:groupId/dispense-all', async (req, res) => {
+router.put('/:id/prescriptions/group/:groupId/dispense-all', protect, authorize('Pharmacist'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -383,7 +384,7 @@ router.put('/:id/prescriptions/group/:groupId/dispense-all', async (req, res) =>
 });
 
 // ─── GET /api/patients/:id/qr  ──  Re-fetch QR code ─────────────────────────
-router.post('/:id/send-all-prescriptions', async (req, res) => {
+router.post('/:id/send-all-prescriptions', protect, authorize('Pharmacist', 'Nurse'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -428,7 +429,7 @@ router.post('/:id/send-all-prescriptions', async (req, res) => {
   }
 });
 
-router.get('/:id/download-all-prescriptions', async (req, res) => {
+router.get('/:id/download-all-prescriptions', protect, authorize('Pharmacist', 'Nurse'), async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id });
     if (!patient) {
@@ -447,7 +448,7 @@ router.get('/:id/download-all-prescriptions', async (req, res) => {
   }
 });
 
-router.get('/:id/qr', async (req, res) => {
+router.get('/:id/qr', protect, async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientId: req.params.id }).select('patientId name qrCode');
     if (!patient) return res.status(404).json({ message: 'Patient not found.' });
@@ -458,7 +459,7 @@ router.get('/:id/qr', async (req, res) => {
 });
 
 // ─── GET /api/patients/stats/summary  ──  Dashboard stats ────────────────────
-router.get('/stats/summary', async (req, res) => {
+router.get('/stats/summary', protect, async (req, res) => {
   try {
     const totalPatients = await Patient.countDocuments();
     const today = new Date();

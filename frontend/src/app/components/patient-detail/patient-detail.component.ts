@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../../services/patient.service';
+import { AuthService } from '../../services/auth.service';
 import { Patient } from '../../models/patient.model';
 
 @Component({
@@ -18,7 +19,8 @@ export class PatientDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private patientService: PatientService
+    private patientService: PatientService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {

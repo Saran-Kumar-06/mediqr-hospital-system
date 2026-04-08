@@ -8,8 +8,9 @@ const {
   buildReportUrl,
   isPubliclyReachableUrl
 } = require('../utils/prescriptionPdfLocator');
+const { protect, authorize } = require('../middleware/auth');
 
-router.post('/:id/send-whatsapp', async (req, res) => {
+router.post('/:id/send-whatsapp', protect, authorize('Pharmacist', 'Nurse'), async (req, res) => {
   const prescriptionId = req.params.id;
 
   try {
@@ -88,7 +89,7 @@ router.post('/:id/send-whatsapp', async (req, res) => {
   }
 });
 
-router.get('/:id/download', async (req, res) => {
+router.get('/:id/download', protect, authorize('Pharmacist', 'Nurse'), async (req, res) => {
   const prescriptionId = req.params.id;
 
   try {

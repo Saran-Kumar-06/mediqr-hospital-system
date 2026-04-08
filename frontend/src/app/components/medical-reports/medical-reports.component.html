@@ -15,7 +15,7 @@
     {{ errorMsg }}
   </div>
 
-  <form class="report-upload-panel" [formGroup]="form" (ngSubmit)="uploadReport()">
+  <form *ngIf="authService.isNurse()" class="report-upload-panel" [formGroup]="form" (ngSubmit)="uploadReport()">
     <div class="report-form-grid">
       <div class="form-group">
         <label class="required">Report Type</label>
@@ -73,7 +73,7 @@
         <a class="btn btn-sm btn-outline" [href]="getReportUrl(report)" [attr.download]="report.fileName">
           Download
         </a>
-        <button class="btn btn-sm btn-outline" type="button"
+        <button *ngIf="authService.isNurse() || authService.isPharmacist()" class="btn btn-sm btn-outline" type="button"
                 (click)="sendReportWhatsapp(report)" [disabled]="sendingReportId === report._id">
           {{ sendingReportId === report._id ? 'Sending...' : 'Send via WhatsApp' }}
         </button>

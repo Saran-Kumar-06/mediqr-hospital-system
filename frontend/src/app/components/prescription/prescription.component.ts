@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PatientService } from '../../services/patient.service';
+import { AuthService } from '../../services/auth.service';
 import { Patient, Prescription } from '../../models/patient.model';
 import { environment } from '../../../environments/environment';
 
@@ -35,7 +36,8 @@ export class PrescriptionComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private patientService: PatientService
+    private patientService: PatientService,
+    public authService: AuthService
   ) {
     this.form = this.createMedicineForm();
   }

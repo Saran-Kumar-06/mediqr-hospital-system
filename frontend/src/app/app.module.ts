@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { TitleCasePipe } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -16,6 +16,8 @@ import { VitalsEntryComponent } from './components/vitals-entry/vitals-entry.com
 import { VisitHistoryComponent } from './components/visit-history/visit-history.component';
 import { PrescriptionComponent } from './components/prescription/prescription.component';
 import { MedicalReportsComponent } from './components/medical-reports/medical-reports.component';
+import { AuthComponent } from './components/auth/auth.component';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -28,7 +30,8 @@ import { MedicalReportsComponent } from './components/medical-reports/medical-re
     VitalsEntryComponent,
     VisitHistoryComponent,
     PrescriptionComponent,
-    MedicalReportsComponent
+    MedicalReportsComponent,
+    AuthComponent
   ],
   imports: [
     BrowserModule,
@@ -38,7 +41,10 @@ import { MedicalReportsComponent } from './components/medical-reports/medical-re
     ReactiveFormsModule,
     AppRoutingModule
   ],
-  providers: [TitleCasePipe],
+  providers: [
+    TitleCasePipe,
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -29,7 +29,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="16" y="3" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><rect x="3" y="16" width="5" height="5" rx="1" stroke="currentColor" stroke-width="2"/><path d="M16 16h5v5M16 16v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           View QR
         </button>
-        <button class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">
+        <button *ngIf="authService.isNurse()" class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
           Add Vitals
         </button>
@@ -167,7 +167,7 @@
 
         <div class="vitals-actions">
           <button class="btn btn-outline btn-sm" [routerLink]="['/patient', patient.patientId, 'history']">View All Visits</button>
-          <button class="btn btn-primary btn-sm" [routerLink]="['/patient', patient.patientId, 'vitals']">Add New Vitals</button>
+          <button *ngIf="authService.isNurse()" class="btn btn-primary btn-sm" [routerLink]="['/patient', patient.patientId, 'vitals']">Add New Vitals</button>
         </div>
       </div>
     </ng-container>
@@ -176,7 +176,7 @@
       <div class="card empty-vitals-card">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" opacity="0.3"><path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <p>No vitals recorded yet.</p>
-        <button class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">Record First Vitals</button>
+        <button *ngIf="authService.isNurse()" class="btn btn-primary" [routerLink]="['/patient', patient.patientId, 'vitals']">Record First Vitals</button>
       </div>
     </ng-container>
 
