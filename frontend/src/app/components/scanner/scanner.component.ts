@@ -2,8 +2,7 @@ import { Component, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { PatientService } from '../../services/patient.service';
 
-declare const Html5QrcodeScanner: any;
-declare const Html5Qrcode: any;
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 
 @Component({
   selector: 'app-scanner',
@@ -18,7 +17,6 @@ export class ScannerComponent implements AfterViewInit, OnDestroy {
   errorMsg = '';
   successMsg = '';
   scanner: any = null;
-  libLoaded = false;
 
   constructor(
     private patientService: PatientService,
@@ -27,21 +25,12 @@ export class ScannerComponent implements AfterViewInit, OnDestroy {
   ) {}
 
   ngAfterViewInit(): void {
-    this.loadLib().then(() => {
-      this.libLoaded = true;
-      if (this.mode === 'camera') this.startCamera();
-    });
+    if (this.mode === 'camera') {
+      setTimeout(() => this.startCamera(), 300);
+    }
   }
 
-  loadLib(): Promise<void> {
-    return new Promise((resolve) => {
-      if ((window as any).Html5QrcodeScanner) { resolve(); return; }
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
-      script.onload = () => resolve();
-      document.head.appendChild(script);
-    });
-  }
+
 
   switchMode(m: 'camera' | 'upload' | 'manual'): void {
     this.stopCamera();
@@ -55,9 +44,8 @@ export class ScannerComponent implements AfterViewInit, OnDestroy {
   }
 
   startCamera(): void {
-    if (!this.libLoaded || !(window as any).Html5QrcodeScanner) return;
     try {
-      this.scanner = new (window as any).Html5QrcodeScanner(
+      this.scanner = new Html5QrcodeScanner(
         'qr-reader',
         { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
         false
@@ -94,26 +82,29 @@ export class ScannerComponent implements AfterViewInit, OnDestroy {
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (!(window as any).Html5Qrcode) {
-      this.errorMsg = 'QR library not loaded yet. Please wait.';
-      return;
-    }
     this.loading = true;
     this.errorMsg = '';
-    const html5QrCode = new (window as any).Html5Qrcode('file-reader-div');
-    html5QrCode.scanFile(file, true)
-      .then((decodedText: string) => {
-        this.ngZone.run(() => {
-          this.loading = false;
-          this.handleScan(decodedText);
+    
+    try {
+      const html5QrCode = new Html5Qrcode('file-reader-div');
+      html5QrCode.scanFile(file, true)
+        .then((decodedText: string) => {
+          this.ngZone.run(() => {
+            this.loading = false;
+            this.handleScan(decodedText);
+          });
+        })
+        .catch(() => {
+          this.ngZone.run(() => {
+            this.loading = false;
+            this.errorMsg = 'Could not read QR code from image. Try a clearer photo.';
+          });
         });
-      })
-      .catch(() => {
-        this.ngZone.run(() => {
-          this.loading = false;
-          this.errorMsg = 'Could not read QR code from image. Try a clearer photo.';
-        });
-      });
+    } catch (err) {
+      this.loading = false;
+      this.errorMsg = 'Failed to initialize QR scanner. Please try again.';
+      console.error('QR Scanner init error:', err);
+    }
   }
 
   fetchPatient(patientId: string): void {

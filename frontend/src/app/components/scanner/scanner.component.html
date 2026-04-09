@@ -61,7 +61,6 @@
         </label>
         <input id="qr-file-input" type="file" accept="image/*" (change)="onFileSelected($event)" style="display:none" />
       </div>
-      <div id="file-reader-div" style="display:none"></div>
     </div>
 
     <!-- Manual Mode -->
@@ -85,6 +84,7 @@
     </div>
 
     <!-- Scanned ID display -->
+    <div id="file-reader-div" style="display:none"></div>
     <div *ngIf="scanResult && !loading" class="scan-result-display">
       <span class="sr-label">Scanned ID:</span>
       <code>{{ scanResult }}</code>
