@@ -17,8 +17,8 @@ A full-stack QR-based hospital management system built with **Angular** (fronten
 | Prescription Management | ✅ Complete |
 | Pharmacy Dispense Tracking | ✅ Complete |
 | Dashboard with Stats | ✅ Complete |
-| Role-Based Access | 🔜 Future |
-| PDF Report Generator | 🔜 Future |
+| Role-Based Access | ✅ Complete |
+| PDF Report Generator | ✅ Complete |
 
 ---
 
