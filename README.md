@@ -16,7 +16,7 @@ A full-stack web application that digitalizes hospital workflows using QR code t
 ## 🛠 Tech Stack
 
 ### Frontend
-- React.js
+- Angular.js
 - HTML
 - CSS
 - JavaScript
@@ -71,10 +71,3 @@ This project was developed as part of a team.
 - Connected frontend with backend APIs
 - Participated in testing and debugging
 
-## 📸 Screenshots
-
-(Add screenshots here)
-
-## 📜 License
-
-For educational purposes.
