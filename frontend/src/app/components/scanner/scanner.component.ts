@@ -1,6 +1,7 @@
 import { Component, OnDestroy, AfterViewInit, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { PatientService } from '../../services/patient.service';
+import { inflateRaw } from 'pako';
 
 declare const Html5QrcodeScanner: any;
 declare const Html5Qrcode: any;
@@ -84,11 +85,21 @@ export class ScannerComponent implements AfterViewInit, OnDestroy {
     this.stopCamera();
     let patientId = decodedText;
     try {
-      const parsed = JSON.parse(decodedText);
+      const payload = decodedText.startsWith('MQR1:')
+        ? inflateRaw(this.base64UrlToBytes(decodedText.slice(5)), { to: 'string' })
+        : decodedText;
+      const parsed = JSON.parse(payload);
       if (parsed.patientId) patientId = parsed.patientId;
     } catch (_) {}
     this.scanResult = patientId;
     this.fetchPatient(patientId);
+  }
+
+  private base64UrlToBytes(value: string): Uint8Array {
+    const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+    const binary = atob(padded);
+    return Uint8Array.from(binary, character => character.charCodeAt(0));
   }
 
   onFileSelected(event: Event): void {

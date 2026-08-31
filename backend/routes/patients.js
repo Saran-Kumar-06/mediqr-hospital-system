@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const QRCode = require('qrcode');
+const zlib = require('zlib');
 const { v4: uuidv4 } = require('uuid');
 const Patient = require('../models/Patient');
 const { protect, authorize } = require('../middleware/auth');
@@ -23,6 +24,30 @@ function generatePatientId() {
   return `PT-${timestamp}-${random}`;
 }
 
+async function generatePatientQrCode(patient) {
+  const patientData = JSON.stringify({
+    patientId: patient.patientId,
+    name: patient.name,
+    age: patient.age,
+    gender: patient.gender,
+    phone: patient.phone,
+    bloodGroup: patient.bloodGroup,
+    address: patient.address,
+    registeredAt: patient.registeredAt,
+    lastVisit: patient.lastVisit,
+    vitalsHistory: patient.vitalsHistory,
+    prescriptions: patient.prescriptions,
+    medicalReports: patient.medicalReports
+  });
+  const qrData = `MQR1:${zlib.deflateRawSync(Buffer.from(patientData)).toString('base64url')}`;
+
+  return QRCode.toDataURL(qrData, {
+    width: 256,
+    margin: 2,
+    color: { dark: '#1a4a7a', light: '#ffffff' }
+  });
+}
+
 // ─── POST /api/patients  ──  Register new patient ────────────────────────────
 router.post('/', protect, authorize('Nurse'), async (req, res) => {
   try {
@@ -33,14 +58,6 @@ router.post('/', protect, authorize('Nurse'), async (req, res) => {
 
     const patientId = generatePatientId();
 
-    // Generate QR code as data URL (base64)
-    const qrData = JSON.stringify({ patientId, name });
-    const qrCode = await QRCode.toDataURL(qrData, {
-      width: 256,
-      margin: 2,
-      color: { dark: '#1a4a7a', light: '#ffffff' }
-    });
-
     const patient = new Patient({
       patientId,
       name: name.trim(),
@@ -48,9 +65,10 @@ router.post('/', protect, authorize('Nurse'), async (req, res) => {
       gender,
       phone: phone.trim(),
       bloodGroup: bloodGroup || '',
-      address: address || '',
-      qrCode
+      address: address || ''
     });
+
+    patient.qrCode = await generatePatientQrCode(patient);
 
     await patient.save();
     res.status(201).json({
@@ -115,6 +133,8 @@ router.put('/:id', protect, authorize('Nurse'), async (req, res) => {
     if (bloodGroup !== undefined) patient.bloodGroup = bloodGroup;
     if (address !== undefined) patient.address = address;
 
+    patient.qrCode = await generatePatientQrCode(patient);
+
     await patient.save();
     res.json({ message: 'Patient updated.', patient });
   } catch (err) {
@@ -139,6 +159,7 @@ router.post('/:id/reports', protect, authorize('Nurse'), async (req, res) => {
     });
 
     patient.medicalReports.push(savedReport);
+    patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
 
     const createdReport = patient.medicalReports[patient.medicalReports.length - 1];
@@ -245,6 +266,7 @@ router.post('/:id/vitals', protect, authorize('Nurse'), async (req, res) => {
 
     patient.vitalsHistory.push(vitalsEntry);
     patient.lastVisit = vitalsEntry.date;
+    patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
 
     res.status(201).json({
@@ -269,6 +291,7 @@ router.put('/:id/vitals/:vitalsId/feedback', protect, authorize('Doctor'), async
     if (!vital) return res.status(404).json({ message: 'Vitals entry not found.' });
 
     vital.doctorFeedback = doctorFeedback;
+    patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
     res.json({ message: 'Feedback updated.', vital });
   } catch (err) {
@@ -322,6 +345,7 @@ router.post('/:id/prescriptions', protect, authorize('Doctor'), async (req, res)
     }
 
     patient.prescriptions.push(...prescriptions);
+  patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
 
     res.status(201).json({
@@ -344,6 +368,7 @@ router.put('/:id/prescriptions/:rxId/dispense', protect, authorize('Pharmacist')
     if (!rx) return res.status(404).json({ message: 'Prescription not found.' });
 
     rx.dispensed = true;
+  patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
     res.json({ message: 'Medicine dispensed.', prescription: rx });
   } catch (err) {
@@ -376,6 +401,7 @@ router.put('/:id/prescriptions/group/:groupId/dispense-all', protect, authorize(
       rx.dispensed = true;
     });
 
+    patient.qrCode = await generatePatientQrCode(patient);
     await patient.save();
     res.json({ message: 'All medicines dispensed.', prescriptions: groupedPrescriptions });
   } catch (err) {
